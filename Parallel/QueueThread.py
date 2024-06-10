@@ -2,10 +2,12 @@ import threading
 import time
 import queue
 
+
 class Table:
     def __init__(self, number):
         self.number = number
         self.is_busy = False
+
 
 class Customer(threading.Thread):
     def __init__(self, number, cafe, queue):
@@ -16,6 +18,7 @@ class Customer(threading.Thread):
 
     def run(self):
         self.cafe.serve_customer(self)
+
 
 class Cafe:
     def __init__(self, tables):
@@ -43,6 +46,7 @@ class Cafe:
         else:
             print(f"Посетитель номер {customer.number} ожидает свободный стол.")
             self.queue.put(customer)
+
 
 # Создаем столики в кафе
 table1 = Table(1)
