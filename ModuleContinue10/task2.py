@@ -4,7 +4,7 @@ import multiprocessing
 def process_request(queue, data):
     while True:
         request = queue.get()
-        if request is None: 
+        if request is None:
             break
         product, action, quantity = request
         if action == "receipt":
