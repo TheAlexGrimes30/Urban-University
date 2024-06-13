@@ -1,4 +1,3 @@
-# Фабрика функций
 def create_operation(operation):
     if operation == "add":
         def add(x, y):
@@ -21,8 +20,6 @@ print(my_func_add(4, 2))
 
 my_func_divide = create_operation("add")
 print(my_func_divide(4, 2))
-
-# Лямбда-функции
 
 print()
 print("Лямбда")
