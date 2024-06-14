@@ -1,3 +1,4 @@
+import csv
 import os
 import json
 
@@ -10,8 +11,8 @@ class PriceMachine():
         self.name_length = 0
 
     def load_prices(self, file_path=''):
-        '''
-            Сканирует указанный каталог. Ищет файлы со словом price в названии.
+        """
+        Сканирует указанный каталог. Ищет файлы со словом price в названии.
             В файле ищет столбцы с названием товара, ценой и весом.
             Допустимые названия для столбца с товаром:
                 товар
@@ -27,7 +28,25 @@ class PriceMachine():
                 вес
                 масса
                 фасовка
-        '''
+        :param file_path:
+        :return:
+        """
+
+        available_product_names = ['товар', 'название', 'наименование', 'продукт']
+        available_price_names = ['розница', 'цена']
+        available_weight_names = ['вес', 'масса', 'фасовка']
+
+        for file in os.listdir(file_path):
+            if 'price' in file and file.endswith('.csv'):
+                reader = csv.DictReader(file, delimiter=';')
+                headers = reader.fieldnames
+                for header in headers:
+                    if header in available_product_names:
+                        pass
+                    if header in available_price_names:
+                        pass
+                    if header in available_weight_names:
+                        pass
 
     def _search_product_price_weight(self, headers):
         '''
@@ -55,6 +74,7 @@ class PriceMachine():
 
     def find_text(self, text):
         pass
+
 
 pm = PriceMachine()
 print(pm.load_prices())
