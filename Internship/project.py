@@ -9,7 +9,8 @@ class PriceMachine:
         self.result = ''
         self.name_length = 0
 
-    def _search_product_price_weight(self, headers, available_product_names, available_price_names, available_weight_names):
+    def _search_product_price_weight(self, headers, available_product_names, available_price_names,
+                                     available_weight_names):
         """
         Возвращает имена столбцов с названием товара, ценой и весом.
         :param headers: Заголовки столбцов
@@ -20,13 +21,13 @@ class PriceMachine:
         """
         product_col = price_col = weight_col = None
         for header in headers:
-            if header in available_product_names:
-                product_col = header
-            elif header in available_price_names:
-                price_col = header
-            elif header in available_weight_names:
-                weight_col = header
-        print(product_col, weight_col, price_col)
+            for subheader in list(header.split(",")):
+                if subheader in available_product_names:
+                    product_col = subheader
+                elif subheader in available_price_names:
+                    price_col = subheader
+                elif subheader in available_weight_names:
+                    weight_col = subheader
         return product_col, price_col, weight_col
 
     def load_prices(self, file_path=''):
@@ -60,19 +61,48 @@ class PriceMachine:
                     reader = csv.DictReader(csvfile, delimiter=';')
                     product_col, price_col, weight_col = self._search_product_price_weight(
                         reader.fieldnames, available_product_names, available_price_names, available_weight_names)
+
                     if product_col and price_col and weight_col:
+                        valid_data = list(reader.fieldnames[0].split(","))
+                        if price_col not in valid_data or weight_col not in valid_data or product_col not in valid_data:
+                            continue
+                        datatable = dict()
                         for row in reader:
                             try:
-                                price_per_kg = float(row[price_col]) / float(row[weight_col])
+                                data = list(row[reader.fieldnames[0]].split(","))
+                                for i in range(len(valid_data)):
+                                    datatable[valid_data[i]] = data[i]
+
+                                product_number = 0
+                                while product_col != valid_data[product_number]:
+                                    product_number += 1
+
+                                price_number = 0
+                                while price_col != valid_data[price_number]:
+                                    price_number += 1
+
+                                weight_number = 0
+                                while weight_col != valid_data[weight_number]:
+                                    weight_number += 1
+
+                                # Проверяем, что значения не пустые
+                                if not datatable[valid_data[price_number]] or not datatable[valid_data[weight_number]]:
+                                    continue
+
+                                price_per_kg = float(datatable[valid_data[price_number]]) / float(datatable[valid_data[weight_number]])
                                 self.data.append({
-                                    'name': row[product_col],
-                                    'price': float(row[price_col]),
-                                    'weight': float(row[weight_col]),
+                                    'name': datatable[valid_data[product_number]],
+                                    'price': float(datatable[valid_data[price_number]]),
+                                    'weight': float(datatable[valid_data[weight_number]]),
                                     'file': file,
                                     'price_per_kg': price_per_kg
                                 })
-                            except ValueError:
+
+                            except ValueError as e:
+                                print(f"Skipping row due to error: {e}, row: {row}")
                                 continue
+                    else:
+                        print("Нет название, веса или(и) цены товара")
 
     def export_to_html(self, fname='output.html'):
         """
@@ -119,8 +149,8 @@ class PriceMachine:
         </body>
         </html>
         '''
-        with open(fname, 'w', encoding='utf-8') as f:
-            f.write(result)
+        with open(fname, 'w', encoding='utf-8') as file:
+            file.write(result)
 
     def find_text(self, text):
         """
@@ -135,7 +165,7 @@ class PriceMachine:
 
 def main():
     pm = PriceMachine()
-    pm.load_prices('data')  # Укажите путь к папке с прайс-листами
+    pm.load_prices('data')
 
     while True:
         user_input = input("Введите текст для поиска (или 'exit' для выхода): ").strip()
@@ -146,7 +176,8 @@ def main():
         if results:
             print(f"{'№':<3} {'Наименование':<30} {'Цена':<10} {'Вес':<10} {'Файл':<15} {'Цена за кг.':<10}")
             for i, item in enumerate(results, 1):
-                print(f"{i:<3} {item['name']:<30} {item['price']:<10} {item['weight']:<10} {item['file']:<15} {item['price_per_kg']:<10}")
+                print(
+                    f"{i:<3} {item['name']:<30} {item['price']:<10} {item['weight']:<10} {item['file']:<15} {item['price_per_kg']:<10}")
         else:
             print("Товары не найдены.")
 
